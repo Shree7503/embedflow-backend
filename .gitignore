@@ -1,0 +1,12 @@
+# Global
+node_modules/
+dist/
+.env
+.DS_Store
+*.log
+
+# Docker
+**/node_modules/
+**/dist/
+.docker/
+docker-compose.override.yml

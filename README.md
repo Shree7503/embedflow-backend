@@ -78,8 +78,10 @@ docker-compose down
 ## 📁 Project Structure
 ```
 embedflow/
+├── gateway/
+    ├── nginx.conf
+    ├── Dockerfile
 ├── docker-compose.yml
-├── nginx.conf
 ├── user-service/
 ├── auth-service/
 └── README.md

@@ -11,6 +11,10 @@ app.use(express.json());
 // Global error handler (should be after routes)
 app.use(errorHandler);
 
+app.get('/', (req, res) => {
+  res.status(200).send({message: 'Hello World!'});
+})
+
 app.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`);
 });

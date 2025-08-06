@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(errorHandler);
 
 app.get('/', (req, res) => {
-  res.status(200).send({message: 'Hello World!'});
+  res.status(200).send({message: 'fuck you!'});
 })
 
 app.listen(config.port, () => {

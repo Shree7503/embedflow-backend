@@ -1,13 +1,17 @@
 import express from "express";
-import { logIn, logOut, signUp, updateUser, getUser } from "./controller";
+import {
+  signIn,
+  signOut,
+  getUser,
+  updateUser,
+  signUp,
+} from "@/api/v1/user/authentication/controller";
 
 const router = express.Router();
 
-const app = express();
-
-router.post("/login", logIn);
-router.post("/register", signUp);
-router.post("/sign-out", logOut);
+router.post("/sign-in", signIn);
+router.post("/sign-up", signUp);
+router.post("/sign-out", signOut);
 
 //auth middleware
 // app.use(verifyUser);

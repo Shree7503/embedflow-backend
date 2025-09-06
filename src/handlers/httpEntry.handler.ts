@@ -6,7 +6,9 @@ export const httpEntry = (req: Request, res: Response, next: NextFunction) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    logger.http(`${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`);
+    logger.http(
+      `${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`
+    );
   });
 
   next();

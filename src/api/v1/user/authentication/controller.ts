@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import logger from "@/utils/debug/logger";
 
 export const signIn = (req: Request, res: Response, next: NextFunction) => {};
 

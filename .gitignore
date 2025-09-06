@@ -42,3 +42,7 @@ coverage/
 .cache/
 .eslintcache
 .turbo/
+
+/generated/prisma
+
+/generated/prisma

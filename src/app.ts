@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(httpEntry);
 
 // Routes
-app.use("/api", api);
+app.use("/api/v1", api);
 
 //not found error
 app.use(notFoundHandler);

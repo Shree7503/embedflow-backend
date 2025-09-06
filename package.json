@@ -1,0 +1,35 @@
+{
+  "name": "embedflow-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node -r tsconfig-paths/register dist/server.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --watch server.ts --exec 'ts-node -r tsconfig-paths/register' server.ts",
+    "lint": "eslint '{src,server.ts}/**/*.{ts,js}' --fix",
+    "format": "prettier --write '{src,server.ts}/**/*.{ts,js,json,md}'"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.1",
+    "@types/winston": "^2.4.4",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
+    "dotenv": "^17.2.2",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "private": true,
+  "dependencies": {
+    "tsconfig-paths": "^4.2.0",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  }
+}

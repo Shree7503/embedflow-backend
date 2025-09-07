@@ -23,6 +23,7 @@ export const verifyUserToken = (
 
     if (typeof decoded === "object") {
       req.user = {
+        ...req.user,
         id: decoded.id,
         username: decoded.username,
         email: decoded.email,

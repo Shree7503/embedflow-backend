@@ -3,6 +3,8 @@
     /* Output */
     "outDir": "dist",
     "rootDir": ".",
+    "types": ["node", "express"],
+    "typeRoots": ["./src/types", "./node_modules/@types"],
 
     /* Language */
     "target": "ES2020",

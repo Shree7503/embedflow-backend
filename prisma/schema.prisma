@@ -97,7 +97,7 @@ model QueryLog {
 
 model User {
   id        String   @id @default(uuid())
-  username  String
+  username  String   @unique 
   email     String   @unique
   password  String
   createdAt DateTime @default(now()) @map("created_at")

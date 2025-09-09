@@ -46,7 +46,7 @@ enum IngestionStatus {
 }
 
 model Model {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(uuid())
   modelName   String    @map("model_name")
   modelType   ModelType @map("model_type")
   description String?
@@ -97,7 +97,7 @@ model QueryLog {
 
 model User {
   id        String   @id @default(uuid())
-  username  String   @unique 
+  username  String   @unique
   email     String   @unique
   password  String
   createdAt DateTime @default(now()) @map("created_at")

@@ -71,7 +71,7 @@ export const updateProject = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id = req.params.id;
+  const id = req.user!.id;
   const updates = req.body;
 
   try {

@@ -7,8 +7,8 @@ const router = express.Router({mergeParams:true});
 router.post("/",uploadDocument);
 router.get("/",getDocument);
 router.put("/",changeDocument);
-router.delete("/:id",delDocument);
-router.get("/:id",getDocumentById);
+router.delete("/:documentId",delDocument);
+router.get("/:documentId",getDocumentById);
 
 
 export default router;

@@ -103,6 +103,54 @@ export const getDocument= async (
   }
 };
 
+export const updateDocumentStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user!.id;
+    const { projectId, documentId } = req.params;
+    const { status } = req.body;
+
+    // 1. Validate the new status from the request body
+    if (!status || !['COMPLETED', 'FAILED'].includes(status)) {
+      return res.status(400).json({ message: "Request body must include a valid status: 'COMPLETED' or 'FAILED'." });
+    }
+    
+    // 2. Use a transaction to find the document and update it, ensuring the user has permission.
+    const updatedDocument = await prisma.$transaction(async (tx) => {
+        const document = await tx.document.findFirst({
+            where: {
+                id: documentId,
+                projectId: projectId,
+                project: {
+                    userId: userId,
+                },
+            },
+        });
+
+        if (!document) {
+            return null; 
+        }
+
+       
+        return tx.document.update({
+            where: { id: documentId },
+            data: { ingestionStatus: status },
+        });
+    });
+
+    if (!updatedDocument) {
+        return res.status(404).json({ message: 'Document not found or you do not have permission to modify it.' });
+    }
+
+    return res.status(200).json(updatedDocument);
+    
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const getDocumentById = async (
   req: Request,

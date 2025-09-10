@@ -1,5 +1,5 @@
 import express from "express";
-import {uploadDocument,getDocument,delDocument,changeDocument,getDocumentById} from "@/api/v1/user/projects/documents/controller";
+import {uploadDocument,getDocument,delDocument,changeDocument,getDocumentById,updateDocumentStatus} from "@/api/v1/user/projects/documents/controller";
 
 
 const router = express.Router({mergeParams:true});
@@ -9,6 +9,6 @@ router.get("/",getDocument);
 router.put("/",changeDocument);
 router.delete("/:documentId",delDocument);
 router.get("/:documentId",getDocumentById);
-
+router.patch("/:documentId",updateDocumentStatus);
 
 export default router;

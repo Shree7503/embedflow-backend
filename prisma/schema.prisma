@@ -46,12 +46,13 @@ enum IngestionStatus {
 }
 
 model Model {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id)
   modelName   String    @map("model_name")
   modelType   ModelType @map("model_type")
   description String?
   isActive    Boolean   @default(true) @map("is_active")
-
+  user        User      @relation(fields:[userId],references:[id])        
   @@map("MODELS")
 }
 
@@ -65,8 +66,8 @@ model Project {
   userId                 String   @map("user_id")
   name                   String
   description            String?
-  retrievalModelId       Int?     @map("retrieval_model_id")
-  generatorModelId       Int?     @map("generator_model_id")
+  retrievalModelId       String     @map("retrieval_model_id")
+  generatorModelId       String     @map("generator_model_id")
   vectorDbCollectionName String?  @map("vector_db_collection_name")
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")

@@ -1,11 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "@/database/prisma";
-import { generatePreSignedUrl,deleteObject,renameObject } from "@/utils/projects/documents/minio";
-import logger from "@/utils/debug/logger";
-import { bullMqConnection } from '@/config/redisConfig';
-import { Queue } from 'bullmq';
-import { log } from "node:console";
-
+import { generatePreSignedUrl,deleteObject } from "@/utils/projects/documents/minio";
 
 
 const getFileTypeEnum = (mimetype: string): 'PDF' | 'TXT' | 'DOCX' | 'MD' | 'CSV' => {
@@ -25,22 +20,6 @@ const getFileTypeEnum = (mimetype: string): 'PDF' | 'TXT' | 'DOCX' | 'MD' | 'CSV
   }
 };
 
-export const minioEvent = async(req: Request,
-  res: Response,
-  next: NextFunction)=>{
-    const queueName = 'minio-events';
-    const minioEventsQueue = new Queue(queueName, { connection: bullMqConnection });
-    const minioEvent = req.body.Event[0]; 
-    console.log(minioEvent)
-  const payload = {
-    EventName: minioEvent.eventName,
-    Key: minioEvent.s3.object.key,
-  };
-  await minioEventsQueue.add('file-upload-job', payload);
-
-  res.status(200).send('Job added to queue.');
-  }
-
 export const uploadDocument = async (
   req: Request,
   res: Response,
@@ -48,7 +27,7 @@ export const uploadDocument = async (
 ) => {
 try {
      const {
-     docName,
+     filename,
      bucketName,
      mimetype
    } = req.body;
@@ -56,7 +35,6 @@ try {
    const userId = req.user!.id; 
    const projectId = req.params.projectId;
    const expTime = 5*60; 
-   
 
    const project = await prisma.project.findFirst({
      where: {
@@ -69,24 +47,22 @@ try {
      return res.status(404).json({ message: 'Project not found or you do not have permission to access it.' });
    }
 
-   if (!docName || !bucketName || !mimetype) {
-     return res.status(400).json({ message: 'Request must include docName, bucketName, and mimetype.' });
+   if (!filename || !bucketName || !mimetype) {
+     return res.status(400).json({ message: 'Request must include filename, bucketName, and mimetype.' });
    }
 
    const newDocument = await prisma.document.create({
      data: {
        projectId: projectId,
-       fileName: docName,
+       fileName: filename,
        fileType: getFileTypeEnum(mimetype),
-       storagePath: `${bucketName}/${projectId}`, 
-       uplaodStatus: 'PENDING',
+       storagePath: bucketName, 
        ingestionStatus: 'PENDING', 
-       
      },
    });
    
-   const objectName = `${projectId}/${newDocument.id}-${docName}`
-   const presignedUrl =await generatePreSignedUrl(objectName,bucketName,expTime);
+   const objectName = `${newDocument.id}-${filename}`
+   const presignedUrl =await generatePreSignedUrl(objectName,newDocument.storagePath,expTime);
    
    
    return res.status(201).json({
@@ -137,10 +113,12 @@ export const updateDocumentStatus = async (
     const { projectId, documentId } = req.params;
     const { status } = req.body;
 
+    // 1. Validate the new status from the request body
     if (!status || !['COMPLETED', 'FAILED'].includes(status)) {
       return res.status(400).json({ message: "Request body must include a valid status: 'COMPLETED' or 'FAILED'." });
     }
     
+    // 2. Use a transaction to find the document and update it, ensuring the user has permission.
     const updatedDocument = await prisma.$transaction(async (tx) => {
         const document = await tx.document.findFirst({
             where: {
@@ -159,7 +137,7 @@ export const updateDocumentStatus = async (
        
         return tx.document.update({
             where: { id: documentId },
-            data: { uplaodStatus: status },
+            data: { ingestionStatus: status },
         });
     });
 
@@ -213,10 +191,9 @@ export const changeDocument = async (
   try {
     const userId = req.user!.id;
     const { projectId, documentId } = req.params;
-    const { docName } = req.body;
-    console.log(documentId);
-    
-    if (!docName) {
+    const { fileName } = req.body; 
+
+    if (!fileName) {
       return res.status(400).json({ message: 'Request body must include the new fileName.' });
     }
 
@@ -231,20 +208,15 @@ export const changeDocument = async (
         },
       });
 
-
       if (!document) {
         return null;
       }
-      const bucketName = document.storagePath.split("/")[0]
-      logger.debug(`DEBUG: Attempting to rename from path: [${document.storagePath}], filename: [${document.fileName}]`);
-      await renameObject(bucketName, `${projectId}/${document.id}-${document.fileName}`, `${projectId}/${document.id}-${docName}`);
       
       return tx.document.update({
         where: { id: documentId },
-        data: { fileName: docName },
+        data: { fileName },
       });
     });
-
 
     if (!updatedDocument) {
       return res.status(404).json({ message: 'Document not found or you do not have permission to modify it.' });
@@ -253,7 +225,6 @@ export const changeDocument = async (
     return res.status(200).json(updatedDocument);
 
   } catch (error) {
-   
     next(error);
   }
 };
@@ -282,8 +253,8 @@ export const delDocument = async (
       return res.status(404).json({ message: 'Document not found or you do not have permission to delete it.' });
     }
 
-    const objectName = `${projectId}/${document.id}-${document.fileName}`;
-    const bucketName = document.storagePath.split("/")[0];
+    const objectName = `${document.id}-${document.fileName}`;
+    const bucketName = document.storagePath;
 
     await deleteObject(bucketName, objectName);
 
@@ -291,9 +262,7 @@ export const delDocument = async (
       where: { id: documentId },
     });
 
-    res.status(204).json({
-      message:"document deleted successfully"
-    });
+    return res.status(204).send();
 
   } catch (error) {
     next(error);

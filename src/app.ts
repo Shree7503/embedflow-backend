@@ -5,6 +5,7 @@ import { errorHandler } from "@/handlers/error.handler";
 import api from "@/api/v1";
 import prisma from "@/database/prisma";
 import cors from "cors";
+import { client } from "@/config/redisConfig";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(httpEntry);
 
 process.on("SIGINT", async () => {
   await prisma.$disconnect();
+  await client.quit();
   process.exit(0);
 });
 

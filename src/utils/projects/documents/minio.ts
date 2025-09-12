@@ -24,3 +24,26 @@ export const deleteObject = async (bucketName: string, objectName: string): Prom
         throw new Error("Failed to delete object from storage.");
     }
 };
+
+export const renameObject = async (
+    bucketName: string,
+    oldObjectName: string,
+    newObjectName: string
+): Promise<void> => {
+    try {
+
+        await minioClient.copyObject(
+            bucketName,
+            newObjectName,
+            `/${bucketName}/${oldObjectName}`
+        );
+        console.log(`Successfully copied '${oldObjectName}' to '${newObjectName}'.`);
+
+        await minioClient.removeObject(bucketName, oldObjectName);
+        console.log(`Successfully deleted original object '${oldObjectName}'.`);
+
+    } catch (error) {
+        console.error("Error renaming object:", error);
+        throw new Error("Failed to rename object in storage.");
+    }
+};

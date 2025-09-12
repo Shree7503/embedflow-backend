@@ -4,8 +4,8 @@ import prisma from "@/database/prisma";
 type ProjectUpdate = {
   name?: string;
   description?: string;
-  retrievalModelId?: number;
-  generatorModelId?: number;
+  retrievalModelId?: string;
+  generatorModelId?: string;
   vectorDbCollectionName?: string;
 };
 

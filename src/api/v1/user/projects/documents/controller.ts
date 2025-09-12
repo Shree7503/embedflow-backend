@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "@/database/prisma";
-import { generatePreSignedUrl,deleteObject } from "@/utils/projects/documents/minio";
+import { generatePreSignedUrl,deleteObject,renameObject } from "@/utils/projects/documents/minio";
 
 
 const getFileTypeEnum = (mimetype: string): 'PDF' | 'TXT' | 'DOCX' | 'MD' | 'CSV' => {
@@ -57,7 +57,9 @@ try {
        fileName: filename,
        fileType: getFileTypeEnum(mimetype),
        storagePath: bucketName, 
+       uplaodStstus: 'PENDING',
        ingestionStatus: 'PENDING', 
+       
      },
    });
    
@@ -113,12 +115,10 @@ export const updateDocumentStatus = async (
     const { projectId, documentId } = req.params;
     const { status } = req.body;
 
-    // 1. Validate the new status from the request body
     if (!status || !['COMPLETED', 'FAILED'].includes(status)) {
       return res.status(400).json({ message: "Request body must include a valid status: 'COMPLETED' or 'FAILED'." });
     }
     
-    // 2. Use a transaction to find the document and update it, ensuring the user has permission.
     const updatedDocument = await prisma.$transaction(async (tx) => {
         const document = await tx.document.findFirst({
             where: {
@@ -137,7 +137,7 @@ export const updateDocumentStatus = async (
        
         return tx.document.update({
             where: { id: documentId },
-            data: { ingestionStatus: status },
+            data: { uplaodStstus: status },
         });
     });
 
@@ -191,7 +191,7 @@ export const changeDocument = async (
   try {
     const userId = req.user!.id;
     const { projectId, documentId } = req.params;
-    const { fileName } = req.body; 
+    const { fileName } = req.body;
 
     if (!fileName) {
       return res.status(400).json({ message: 'Request body must include the new fileName.' });
@@ -208,15 +208,20 @@ export const changeDocument = async (
         },
       });
 
+
       if (!document) {
         return null;
       }
+
+      console.log(`DEBUG: Attempting to rename from path: [${document.storagePath}], filename: [${document.fileName}]`);
+      await renameObject(document.storagePath, `${document.id}-${document.fileName}`, `${document.id}-${fileName}`);
       
       return tx.document.update({
         where: { id: documentId },
-        data: { fileName },
+        data: { fileName: fileName },
       });
     });
+
 
     if (!updatedDocument) {
       return res.status(404).json({ message: 'Document not found or you do not have permission to modify it.' });
@@ -225,6 +230,7 @@ export const changeDocument = async (
     return res.status(200).json(updatedDocument);
 
   } catch (error) {
+   
     next(error);
   }
 };

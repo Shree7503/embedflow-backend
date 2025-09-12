@@ -6,7 +6,7 @@ const router = express.Router({mergeParams:true});
 
 router.post("/",uploadDocument);
 router.get("/",getDocument);
-router.put("/",changeDocument);
+router.put("/:documentId",changeDocument);
 router.delete("/:documentId",delDocument);
 router.get("/:documentId",getDocumentById);
 router.patch("/:documentId",updateDocumentStatus);

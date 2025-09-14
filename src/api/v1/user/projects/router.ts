@@ -5,12 +5,13 @@ import {
   updateProject,
   deleteProject,
 } from "@/api/v1/user/projects/controller";
-
 const router = express.Router();
 
 router.post("/", createProject);
 router.get("/", getProjects);
-router.put("/:id", updateProject);
-router.delete("/:id", deleteProject);
+router.put("/:projectId", updateProject);
+router.delete("/:projectId", deleteProject);
+
+
 
 export default router;

@@ -88,7 +88,7 @@ model Project {
 }
 
 model QueryLog {
-  id                BigInt   @id @default(autoincrement())
+  id                String   @id @default(uuid())
   projectId         String   @map("project_id")
   apiKeyId          String   @map("api_key_id")
   userQuery         String   @map("user_query")

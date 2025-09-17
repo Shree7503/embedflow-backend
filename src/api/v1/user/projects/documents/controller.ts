@@ -58,7 +58,7 @@ try {
        fileName: docName,
        fileType: getFileTypeEnum(mimetype),
        storagePath: `${bucketName}/${projectId}`, 
-       uplaodStstus: 'PENDING',
+       uplaodStatus: 'PENDING',
        ingestionStatus: 'PENDING', 
        
      },
@@ -138,7 +138,7 @@ export const updateDocumentStatus = async (
        
         return tx.document.update({
             where: { id: documentId },
-            data: { uplaodStstus: status },
+            data: { uplaodStatus: status },
         });
     });
 

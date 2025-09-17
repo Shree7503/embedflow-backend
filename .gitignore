@@ -42,7 +42,6 @@ coverage/
 .cache/
 .eslintcache
 .turbo/
-
-prisma/generated/prisma
+minio-data/
 
 prisma/generated/prisma

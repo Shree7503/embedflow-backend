@@ -27,7 +27,7 @@ export const uploadDocument = async (
 ) => {
 try {
      const {
-     filename,
+     docName,
      bucketName,
      mimetype
    } = req.body;
@@ -35,6 +35,7 @@ try {
    const userId = req.user!.id; 
    const projectId = req.params.projectId;
    const expTime = 5*60; 
+   
 
    const project = await prisma.project.findFirst({
      where: {
@@ -47,24 +48,24 @@ try {
      return res.status(404).json({ message: 'Project not found or you do not have permission to access it.' });
    }
 
-   if (!filename || !bucketName || !mimetype) {
-     return res.status(400).json({ message: 'Request must include filename, bucketName, and mimetype.' });
+   if (!docName || !bucketName || !mimetype) {
+     return res.status(400).json({ message: 'Request must include docName, bucketName, and mimetype.' });
    }
 
    const newDocument = await prisma.document.create({
      data: {
        projectId: projectId,
-       fileName: filename,
+       fileName: docName,
        fileType: getFileTypeEnum(mimetype),
-       storagePath: bucketName, 
+       storagePath: `${bucketName}/${projectId}`, 
        uplaodStstus: 'PENDING',
        ingestionStatus: 'PENDING', 
        
      },
    });
    
-   const objectName = `${newDocument.id}-${filename}`
-   const presignedUrl =await generatePreSignedUrl(objectName,newDocument.storagePath,expTime);
+   const objectName = `${projectId}/${newDocument.id}-${docName}`
+   const presignedUrl =await generatePreSignedUrl(objectName,bucketName,expTime);
    
    
    return res.status(201).json({

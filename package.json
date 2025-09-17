@@ -38,7 +38,7 @@
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
-    "minio": "^8.0.5",
+    "minio": "^8.0.6",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "winston": "^3.17.0",

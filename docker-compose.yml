@@ -1,6 +1,7 @@
-
+version: '3.8'
 
 services:
+
   minio:
     image: minio/minio:latest
     container_name: minio-server-local
@@ -13,9 +14,29 @@ services:
     volumes:
       - ./minio-data:/data
     command: server /data --console-address ":9001"
-
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis-server
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+volumes:
+  redis_data: {} 
+
+networks:
+  app-network:
+    driver: bridge

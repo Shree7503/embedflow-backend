@@ -47,3 +47,22 @@ export const renameObject = async (
         throw new Error("Failed to rename object in storage.");
     }
 };
+
+export const getObject = async (
+    bucketName: string,
+    objectName: string,
+    filePath:string
+): Promise<void> => {
+    try {
+
+        const result = await minioClient.fGetObject(bucketName,objectName,filePath)
+
+        if(result!=null){
+            return result
+        }
+
+    } catch (error) {
+        console.error("Error fetching object:", error);
+        throw new Error("Failed to get object from storage.");
+    }
+};

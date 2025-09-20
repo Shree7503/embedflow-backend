@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "@/database/prisma";
 import { generatePreSignedUrl,deleteObject,renameObject } from "@/utils/projects/documents/minio";
+import logger from "@/utils/debug/logger";
+import { bullMqConnection } from '@/config/redisConfig';
+import { Queue } from 'bullmq';
+import { log } from "node:console";
+
 
 
 const getFileTypeEnum = (mimetype: string): 'PDF' | 'TXT' | 'DOCX' | 'MD' | 'CSV' => {
@@ -19,6 +24,22 @@ const getFileTypeEnum = (mimetype: string): 'PDF' | 'TXT' | 'DOCX' | 'MD' | 'CSV
       throw new Error(`Unsupported file type: ${mimetype}`);
   }
 };
+
+export const minioEvent = async(req: Request,
+  res: Response,
+  next: NextFunction)=>{
+    const queueName = 'minio-events';
+    const minioEventsQueue = new Queue(queueName, { connection: bullMqConnection });
+    const minioEvent = req.body.Event[0]; 
+    console.log(minioEvent)
+  const payload = {
+    EventName: minioEvent.eventName,
+    Key: minioEvent.s3.object.key,
+  };
+  await minioEventsQueue.add('file-upload-job', payload);
+
+  res.status(200).send('Job added to queue.');
+  }
 
 export const uploadDocument = async (
   req: Request,
@@ -192,9 +213,10 @@ export const changeDocument = async (
   try {
     const userId = req.user!.id;
     const { projectId, documentId } = req.params;
-    const { fileName } = req.body;
-
-    if (!fileName) {
+    const { docName } = req.body;
+    console.log(documentId);
+    
+    if (!docName) {
       return res.status(400).json({ message: 'Request body must include the new fileName.' });
     }
 
@@ -213,13 +235,13 @@ export const changeDocument = async (
       if (!document) {
         return null;
       }
-
-      console.log(`DEBUG: Attempting to rename from path: [${document.storagePath}], filename: [${document.fileName}]`);
-      await renameObject(document.storagePath, `${document.id}-${document.fileName}`, `${document.id}-${fileName}`);
+      const bucketName = document.storagePath.split("/")[0]
+      logger.debug(`DEBUG: Attempting to rename from path: [${document.storagePath}], filename: [${document.fileName}]`);
+      await renameObject(bucketName, `${projectId}/${document.id}-${document.fileName}`, `${projectId}/${document.id}-${docName}`);
       
       return tx.document.update({
         where: { id: documentId },
-        data: { fileName: fileName },
+        data: { fileName: docName },
       });
     });
 
@@ -260,8 +282,8 @@ export const delDocument = async (
       return res.status(404).json({ message: 'Document not found or you do not have permission to delete it.' });
     }
 
-    const objectName = `${document.id}-${document.fileName}`;
-    const bucketName = document.storagePath;
+    const objectName = `${projectId}/${document.id}-${document.fileName}`;
+    const bucketName = document.storagePath.split("/")[0];
 
     await deleteObject(bucketName, objectName);
 
@@ -269,7 +291,9 @@ export const delDocument = async (
       where: { id: documentId },
     });
 
-    return res.status(204).send();
+    res.status(204).json({
+      message:"document deleted successfully"
+    });
 
   } catch (error) {
     next(error);

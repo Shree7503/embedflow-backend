@@ -42,7 +42,7 @@ coverage/
 .cache/
 .eslintcache
 .turbo/
-minio-data/
+
 
 prisma/generated/prisma
 src/services/downloads

@@ -21,8 +21,7 @@ model Document {
   fileName        String          @map("file_name")
   fileType        FileType        @map("file_type")
   storagePath     String          @map("storage_path")
-  uplaodStatus    IngestionStatus @map("uplaod_status")
-  ingestionStatus IngestionStatus @map("ingetion_status")
+  ingestionStatus IngestionStatus @map("ingestion_status")
   errorMessage    String?         @map("error_message")
   uploadedAt      DateTime        @default(now()) @map("uploaded_at")
 
@@ -46,15 +45,9 @@ enum IngestionStatus {
   FAILED
 }
 
-enum uploadStatus {
-  PENDING
-  COMPLETED
-  FAILED
-}
-
 model Model {
   id          String    @id @default(uuid())
-  userId      String    @map("user_id")
+  userId      String    @map("user_id)
   modelName   String    @map("model_name")
   modelType   ModelType @map("model_type")
   description String?
@@ -73,8 +66,8 @@ model Project {
   userId                 String   @map("user_id")
   name                   String
   description            String?
-  retrievalModelId       String   @map("retrieval_model_id")
-  generatorModelId       String   @map("generator_model_id")
+  retrievalModelId       String     @map("retrieval_model_id")
+  generatorModelId       String     @map("generator_model_id")
   vectorDbCollectionName String?  @map("vector_db_collection_name")
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
@@ -88,7 +81,7 @@ model Project {
 }
 
 model QueryLog {
-  id                String   @id @default(uuid())
+  id                BigInt   @id @default(autoincrement())
   projectId         String   @map("project_id")
   apiKeyId          String   @map("api_key_id")
   userQuery         String   @map("user_query")
@@ -113,7 +106,6 @@ model User {
 
   projects Project[]
   apiKeys  ApiKey[]
-  model    Model[]
 
   @@map("USERS")
 }

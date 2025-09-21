@@ -1,5 +1,5 @@
 import express from "express";
-import {uploadDocument,getDocument,delDocument,changeDocument,getDocumentById,updateDocumentStatus,minioEvent} from "@/api/v1/user/projects/documents/controller";
+import {uploadDocument,getDocument,delDocument,changeDocument,getDocumentById,updateDocumentStatus} from "@/api/v1/user/projects/documents/controller";
 
 
 const router = express.Router({mergeParams:true});

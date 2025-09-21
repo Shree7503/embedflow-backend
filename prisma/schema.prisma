@@ -22,6 +22,7 @@ model Document {
   fileType        FileType        @map("file_type")
   storagePath     String          @map("storage_path")
   ingestionStatus IngestionStatus @map("ingestion_status")
+  uploadStatus    UploadStatus    @map("upload_status")
   errorMessage    String?         @map("error_message")
   uploadedAt      DateTime        @default(now()) @map("uploaded_at")
 
@@ -47,13 +48,20 @@ enum IngestionStatus {
 
 model Model {
   id          String    @id @default(uuid())
-  userId      String    @map("user_id)
+  userId      String    @map("user_id")
   modelName   String    @map("model_name")
   modelType   ModelType @map("model_type")
   description String?
   isActive    Boolean   @default(true) @map("is_active")
-  user        User      @relation(fields:[userId],references:[id])        
+  user        User      @relation(fields: [userId], references: [id])
+
   @@map("MODELS")
+}
+
+enum UploadStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }
 
 enum ModelType {
@@ -66,8 +74,8 @@ model Project {
   userId                 String   @map("user_id")
   name                   String
   description            String?
-  retrievalModelId       String     @map("retrieval_model_id")
-  generatorModelId       String     @map("generator_model_id")
+  retrievalModelId       String   @map("retrieval_model_id")
+  generatorModelId       String   @map("generator_model_id")
   vectorDbCollectionName String?  @map("vector_db_collection_name")
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
@@ -98,7 +106,7 @@ model QueryLog {
 
 model User {
   id        String   @id @default(uuid())
-  username  String   @unique 
+  username  String   @unique
   email     String   @unique
   password  String
   createdAt DateTime @default(now()) @map("created_at")
@@ -106,6 +114,7 @@ model User {
 
   projects Project[]
   apiKeys  ApiKey[]
+  Model    Model[]
 
   @@map("USERS")
 }

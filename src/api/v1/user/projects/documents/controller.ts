@@ -63,11 +63,12 @@ export const uploadDocument = async (
         fileType: getFileTypeEnum(mimetype),
         storagePath: bucketName,
         ingestionStatus: "PENDING",
+        uploadStatus: "PENDING",
       },
     });
 
-    const objectName = `${newDocument.id}-${filename}`;
-    const preSignedUrl = await generatePreSignedUrl(
+    const objectName = `${projectId}/${newDocument.id}-${filename}`;
+    const presignedUrl = await generatePreSignedUrl(
       objectName,
       newDocument.storagePath,
       expTime
@@ -75,7 +76,7 @@ export const uploadDocument = async (
 
     return res.status(201).json({
       message: "Successfully generated presigned URL",
-      preSignedUrl: preSignedUrl,
+      presignedUrl: presignedUrl,
     });
   } catch (error) {
     next(error);
@@ -241,7 +242,7 @@ export const changeDocument = async (
   }
 };
 
-export const deleteDocument = async (
+export const delDocument = async (
   req: Request,
   res: Response,
   next: NextFunction

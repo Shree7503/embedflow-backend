@@ -11,8 +11,11 @@ let redisClient: RedisClientType;
 let bullmqQueue: Queue;
 let isRunning = false;
 
-export async function initializePipeline(config: PipelineConfig): Promise<void> {
+export async function initializePipeline(
+  config: PipelineConfig
+): Promise<void> {
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     minioListName = "minio-events",
     queueName = "file-processing",
     redisConfig = { host: "localhost", port: 6379 },
@@ -125,6 +128,7 @@ function transformEventToJob(minioEvent: any): any {
 
 async function transferEventToQueue(
   eventData: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   minioListName: string
 ): Promise<void> {
   try {
@@ -142,7 +146,9 @@ async function transferEventToQueue(
       removeOnFail: 50,
     });
 
-    console.log(`Event transferred to queue: ${jobData.objectKey || "unknown"}`);
+    console.log(
+      `Event transferred to queue: ${jobData.objectKey || "unknown"}`
+    );
   } catch (error) {
     console.error("Error transferring event to queue:", error);
     throw error;

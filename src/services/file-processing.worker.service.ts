@@ -1,13 +1,13 @@
-import { Worker, Job } from 'bullmq';
-import { redisConfig, bullMqConnection } from '@/config/redisConfig';
-import logger from '@/utils/debug/logger';
-import path from 'path';
+import { Worker, Job } from "bullmq";
+import { redisConfig, bullMqConnection } from "@/config/redisConfig";
+import logger from "@/utils/debug/logger";
+import path from "path";
 import {
   initializePipeline,
   startPipeline,
   stopPipeline,
-  disconnectPipeline
-} from '@/services/minio-bullmq-pipeline.service';
+  disconnectPipeline,
+} from "@/services/minio-bullmq-pipeline.service";
 import { getObject } from "@/utils/projects/documents/minio";
 
 interface MinioEventPayload {
@@ -22,9 +22,9 @@ interface MinioEventPayload {
 }
 
 const PIPELINE_CONFIG = {
-  minioListName: process.env.MINIO_EVENTS_LIST || 'minio-events',
-  queueName: process.env.BULLMQ_QUEUE_NAME || 'file-processing',
-  redisConfig: redisConfig
+  minioListName: process.env.MINIO_EVENTS_LIST || "minio-events",
+  queueName: process.env.BULLMQ_QUEUE_NAME || "file-processing",
+  redisConfig: redisConfig,
 };
 
 const QUEUE_NAME = PIPELINE_CONFIG.queueName;
@@ -32,80 +32,79 @@ const QUEUE_NAME = PIPELINE_CONFIG.queueName;
 let worker: Worker<MinioEventPayload> | null = null;
 let isPipelineRunning = false;
 
-async function processMinioEvent(job: Job<MinioEventPayload>): Promise<{ status: string; processedObject: string }> {
+async function processMinioEvent(
+  job: Job<MinioEventPayload>
+): Promise<{ status: string; processedObject: string }> {
   logger.info(`Processing job ID: ${job.id}`);
 
   const payload = job.data;
   const { eventName, bucketName, objectKey } = payload;
 
-  logger.info('Received MinIO event from pipeline', {
+  logger.info("Received MinIO event from pipeline", {
     jobId: job.id,
     eventName,
     bucketName,
-    objectKey
+    objectKey,
   });
 
   try {
     logger.info(`📦 MinIO Event: ${eventName} for ${bucketName}/${objectKey}`);
-    logger.info('Event payload:', payload);
+    logger.info("Event payload:", payload);
 
-    const filePath = path.join(__dirname, 'downloads', objectKey);
+    const filePath = path.join(__dirname, "downloads", objectKey);
     const objectName = objectKey;
 
-    logger.info('bucket name', { bucketName });
-    logger.info('filepath:', { filePath });
-    logger.info('object name:', { objectName });
+    logger.info("bucket name", { bucketName });
+    logger.info("filepath:", { filePath });
+    logger.info("object name:", { objectName });
 
     const fetchedObject = await getObject(bucketName, objectName, filePath);
 
-    logger.info('processed file:', { fetchedObject });
+    logger.info("processed file:", { fetchedObject });
 
-    logger.info(`✅ Successfully processed MinIO event for object: ${objectKey}`);
-    return { status: 'success', processedObject: objectKey };
-
+    logger.info(
+      `✅ Successfully processed MinIO event for object: ${objectKey}`
+    );
+    return { status: "success", processedObject: objectKey };
   } catch (error) {
     logger.error(`❌ Failed to process MinIO event:`, {
       error: error instanceof Error ? error.message : error,
       jobId: job.id,
       objectKey,
-      eventName
+      eventName,
     });
     throw error;
   }
 }
 
 function createWorker(): Worker<MinioEventPayload> {
-  const worker = new Worker<MinioEventPayload>(
-    QUEUE_NAME,
-    processMinioEvent,
-    {
-      connection: bullMqConnection,
-      concurrency: 5,
-      removeOnComplete: { count: 100 },
-      removeOnFail: { count: 50 },
-    }
-  );
+  const worker = new Worker<MinioEventPayload>(QUEUE_NAME, processMinioEvent, {
+    connection: bullMqConnection,
+    concurrency: 5,
+    removeOnComplete: { count: 100 },
+    removeOnFail: { count: 50 },
+  });
 
-  worker.on('completed', (job: Job) => {
+  worker.on("completed", (job: Job) => {
     logger.info(`✅ Job ${job.id} completed successfully`);
   });
 
-  worker.on('failed', (job: Job | undefined, err: Error) => {
+  worker.on("failed", (job: Job | undefined, err: Error) => {
     logger.error(`❌ Job ${job?.id} failed:`, {
       jobId: job?.id,
       error: err.message,
-      stack: err.stack
+      stack: err.stack,
     });
   });
 
-  worker.on('error', (err: Error) => {
-    logger.error('Worker error:', {
+  worker.on("error", (err: Error) => {
+    logger.error("Worker error:", {
       error: err.message,
-      stack: err.stack
+      stack: err.stack,
     });
   });
 
-  worker.on('stalled', (jobId: string) => {
+  worker.on("stalled", (jobId: string) => {
     logger.warn(`⏳ Job ${jobId} stalled and will be retried`);
   });
 
@@ -114,46 +113,48 @@ function createWorker(): Worker<MinioEventPayload> {
 
 async function startPipelineWorker(): Promise<void> {
   if (isPipelineRunning) {
-    logger.warn('Pipeline worker is already running');
+    logger.warn("Pipeline worker is already running");
     return;
   }
 
   try {
-    logger.info('Starting pipeline worker...', PIPELINE_CONFIG);
+    logger.info("Starting pipeline worker...", PIPELINE_CONFIG);
     await initializePipeline(PIPELINE_CONFIG);
     startPipeline(PIPELINE_CONFIG.minioListName).catch((error) => {
-      logger.error('Pipeline failed:', error);
+      logger.error("Pipeline failed:", error);
     });
     isPipelineRunning = true;
-    logger.info('Pipeline worker started successfully');
+    logger.info("Pipeline worker started successfully");
   } catch (error) {
-    logger.error('Pipeline worker failed to start:', error);
+    logger.error("Pipeline worker failed to start:", error);
     throw error;
   }
 }
 
 async function stopPipelineWorker(): Promise<void> {
   try {
-    logger.info('Stopping pipeline worker...');
+    logger.info("Stopping pipeline worker...");
     if (isPipelineRunning) {
       stopPipeline();
       await disconnectPipeline();
       isPipelineRunning = false;
     }
-    logger.info('Pipeline worker stopped successfully');
+    logger.info("Pipeline worker stopped successfully");
   } catch (error) {
-    logger.error('Error stopping pipeline worker:', error);
+    logger.error("Error stopping pipeline worker:", error);
     throw error;
   }
 }
 
 async function startJobProcessor(): Promise<void> {
   try {
-    logger.info('Starting BullMQ job processor...');
+    logger.info("Starting BullMQ job processor...");
     worker = createWorker();
-    logger.info(`🚀 BullMQ worker is running and listening for jobs in queue: '${QUEUE_NAME}'`);
+    logger.info(
+      `🚀 BullMQ worker is running and listening for jobs in queue: '${QUEUE_NAME}'`
+    );
   } catch (error) {
-    logger.error('Failed to start job processor:', error);
+    logger.error("Failed to start job processor:", error);
     throw error;
   }
 }
@@ -161,63 +162,65 @@ async function startJobProcessor(): Promise<void> {
 async function stopJobProcessor(): Promise<void> {
   try {
     if (worker) {
-      logger.info('Stopping BullMQ job processor...');
+      logger.info("Stopping BullMQ job processor...");
       await worker.close();
       worker = null;
-      logger.info('BullMQ job processor stopped');
+      logger.info("BullMQ job processor stopped");
     }
   } catch (error) {
-    logger.error('Error stopping job processor:', error);
+    logger.error("Error stopping job processor:", error);
     throw error;
   }
 }
 
 async function startWorker(): Promise<void> {
   try {
-    logger.info('🚀 Starting MinIO-BullMQ bridge worker...');
-    logger.info('📡 Starting pipeline to bridge MinIO list → BullMQ queue...');
+    logger.info("🚀 Starting MinIO-BullMQ bridge worker...");
+    logger.info("📡 Starting pipeline to bridge MinIO list → BullMQ queue...");
     await startPipelineWorker();
-    logger.info('⚙️ Starting BullMQ job processor...');
+    logger.info("⚙️ Starting BullMQ job processor...");
     await startJobProcessor();
-    logger.info('✅ MinIO-BullMQ bridge worker started successfully');
-    logger.info(`📋 Pipeline: ${PIPELINE_CONFIG.minioListName} → ${QUEUE_NAME}`);
+    logger.info("✅ MinIO-BullMQ bridge worker started successfully");
+    logger.info(
+      `📋 Pipeline: ${PIPELINE_CONFIG.minioListName} → ${QUEUE_NAME}`
+    );
   } catch (error) {
-    logger.error('❌ Failed to start bridge worker:', error);
+    logger.error("❌ Failed to start bridge worker:", error);
     process.exit(1);
   }
 }
 
 async function stopWorker(): Promise<void> {
   try {
-    logger.info('🛑 Stopping MinIO-BullMQ bridge worker...');
+    logger.info("🛑 Stopping MinIO-BullMQ bridge worker...");
     await stopJobProcessor();
     await stopPipelineWorker();
-    logger.info('✅ Bridge worker stopped successfully');
+    logger.info("✅ Bridge worker stopped successfully");
     process.exit(0);
   } catch (error) {
-    logger.error('❌ Error stopping bridge worker:', error);
+    logger.error("❌ Error stopping bridge worker:", error);
     process.exit(1);
   }
 }
 
 function setupGracefulShutdown(): void {
-  process.on('SIGINT', async () => {
-    logger.info('Received SIGINT, shutting down gracefully...');
+  process.on("SIGINT", async () => {
+    logger.info("Received SIGINT, shutting down gracefully...");
     await stopWorker();
   });
 
-  process.on('SIGTERM', async () => {
-    logger.info('Received SIGTERM, shutting down gracefully...');
+  process.on("SIGTERM", async () => {
+    logger.info("Received SIGTERM, shutting down gracefully...");
     await stopWorker();
   });
 
-  process.on('uncaughtException', (error) => {
-    logger.error('Uncaught Exception:', error);
+  process.on("uncaughtException", (error) => {
+    logger.error("Uncaught Exception:", error);
     stopWorker();
   });
 
-  process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.on("unhandledRejection", (reason, promise) => {
+    logger.error("Unhandled Rejection at:", promise, "reason:", reason);
     stopWorker();
   });
 }
@@ -233,5 +236,5 @@ export {
   startPipelineWorker,
   stopPipelineWorker,
   startJobProcessor,
-  stopJobProcessor
+  stopJobProcessor,
 };

@@ -5,7 +5,6 @@ import {uploadDocument,getDocument,delDocument,changeDocument,getDocumentById,up
 const router = express.Router({mergeParams:true});
 
 router.post("/",uploadDocument);
-router.post("/minio-event",minioEvent);
 router.get("/",getDocument);
 router.put("/:documentId",changeDocument);
 router.delete("/:documentId",delDocument);

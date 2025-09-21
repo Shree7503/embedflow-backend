@@ -25,22 +25,6 @@ const getFileTypeEnum = (mimetype: string): 'PDF' | 'TXT' | 'DOCX' | 'MD' | 'CSV
   }
 };
 
-export const minioEvent = async(req: Request,
-  res: Response,
-  next: NextFunction)=>{
-    const queueName = 'minio-events';
-    const minioEventsQueue = new Queue(queueName, { connection: bullMqConnection });
-    const minioEvent = req.body.Event[0]; 
-    console.log(minioEvent)
-  const payload = {
-    EventName: minioEvent.eventName,
-    Key: minioEvent.s3.object.key,
-  };
-  await minioEventsQueue.add('file-upload-job', payload);
-
-  res.status(200).send('Job added to queue.');
-  }
-
 export const uploadDocument = async (
   req: Request,
   res: Response,

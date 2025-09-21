@@ -43,6 +43,6 @@ coverage/
 .eslintcache
 .turbo/
 
+prisma/generated/prisma
 
 prisma/generated/prisma
-src/services/downloads

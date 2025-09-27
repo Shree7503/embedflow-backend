@@ -13,7 +13,6 @@ let isRunning = false;
 
 export async function initializePipeline(config: PipelineConfig): Promise<void> {
   const {
-    minioListName = "minio-events",
     queueName = "file-processing",
     redisConfig = { host: "localhost", port: 6379 },
   } = config;

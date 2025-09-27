@@ -1,14 +1,17 @@
 import { Worker, Job } from 'bullmq';
 import { redisConfig, bullMqConnection } from '@/config/redisConfig';
 import logger from '@/utils/debug/logger';
-import path from 'path';
+import { chunkDocumentWithOpenRouter } from '@/utils/projects/documents/chunking'
+import { processPdfStream } from '@/utils/projects/documents/chunking'
+
 import {
   initializePipeline,
   startPipeline,
   stopPipeline,
   disconnectPipeline
 } from '@/services/minio-bullmq-pipeline.service';
-import { getObject } from "@/utils/projects/documents/minio";
+import { getObject, getObjectStream } from "@/utils/projects/documents/minio";
+import { info, log } from 'node:console';
 
 interface MinioEventPayload {
   eventName: string;
@@ -21,11 +24,44 @@ interface MinioEventPayload {
   originalEvent?: any;
 }
 
+interface OpenRouterConfig {
+  apiKey: string;
+  baseUrl: string;
+  models: {
+    primary: string;
+    fallback: string;
+    metadata: string;
+    validation: string;
+  };
+  costOptimization: {
+    maxRetries: number;
+    useSmartRouting: boolean;
+    budgetLimit?: number;
+  };
+}
+
 const PIPELINE_CONFIG = {
   minioListName: process.env.MINIO_EVENTS_LIST || 'minio-events',
   queueName: process.env.BULLMQ_QUEUE_NAME || 'file-processing',
   redisConfig: redisConfig
 };
+
+const config:OpenRouterConfig ={
+        apiKey: process.env.OPENROUTER_API_KEY || '',
+    baseUrl: process.env.OPEN_ROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
+    models: {
+      primary: 'anthropic/claude-3.5-sonnet',
+      fallback: 'openai/gpt-3.5-turbo',
+      metadata: 'anthropic/claude-3-haiku',
+      validation: 'openai/gpt-4'
+    },
+    costOptimization: {
+      maxRetries: 2,
+      useSmartRouting: true,
+      budgetLimit: 1.0
+    }
+    }
+
 
 const QUEUE_NAME = PIPELINE_CONFIG.queueName;
 
@@ -33,33 +69,37 @@ let worker: Worker<MinioEventPayload> | null = null;
 let isPipelineRunning = false;
 
 async function processMinioEvent(job: Job<MinioEventPayload>): Promise<{ status: string; processedObject: string }> {
-  logger.info(`Processing job ID: ${job.id}`);
 
   const payload = job.data;
-  const { eventName, bucketName, objectKey } = payload;
-
-  logger.info('Received MinIO event from pipeline', {
-    jobId: job.id,
-    eventName,
-    bucketName,
-    objectKey
-  });
-
+  const { eventName, bucketName, objectKey} = payload;
   try {
-    logger.info(`📦 MinIO Event: ${eventName} for ${bucketName}/${objectKey}`);
-    logger.info('Event payload:', payload);
-
-    const filePath = path.join(__dirname, 'downloads', objectKey);
     const objectName = objectKey;
 
-    logger.info('bucket name', { bucketName });
-    logger.info('filepath:', { filePath });
-    logger.info('object name:', { objectName });
+    let finalDoc
+    
+    if(payload.contentType=="application/json" || payload.contentType=="text/plain" || payload.contentType=="text/csv"){
+      const fetchedObject = await getObject(bucketName, objectName);
+      const document = fetchedObject.toString("utf-8")  
+      finalDoc = document
+     }else{
+      const fetchedObjectstream = await getObjectStream(bucketName, objectName);
+      const document2 = await processPdfStream(fetchedObjectstream);
+      finalDoc = document2
+    }
 
-    const fetchedObject = await getObject(bucketName, objectName, filePath);
+    if(finalDoc){
+      const result = await chunkDocumentWithOpenRouter(finalDoc,config,{
+      quality: 'balanced',
+      maxCost: 0.50,
+      preferredProvider: 'anthropic'
+      })
+    }
 
-    logger.info('processed file:', { fetchedObject });
+    
+    
 
+
+    
     logger.info(`✅ Successfully processed MinIO event for object: ${objectKey}`);
     return { status: 'success', processedObject: objectKey };
 

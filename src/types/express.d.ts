@@ -15,7 +15,6 @@ declare global {
         id: string;
       };
     }
-
     
   }
 }

@@ -48,21 +48,21 @@ export const renameObject = async (
     }
 };
 
-export const getObject = async (
-    bucketName: string,
-    objectName: string,
-    filePath:string
-): Promise<void> => {
-    try {
+export const getObject = async(bucketName: string, objectName: string) => {
+    const dataStream = await minioClient.getObject(bucketName, objectName);
+    const chunks: Buffer[] = [];
 
-        const result = await minioClient.fGetObject(bucketName,objectName,filePath)
+    for await (const chunk of dataStream) {
+        chunks.push(chunk as Buffer);
 
-        if(result!=null){
-            return result
-        }
-
-    } catch (error) {
-        console.error("Error fetching object:", error);
-        throw new Error("Failed to get object from storage.");
     }
-};
+    
+    const fullBuffer = Buffer.concat(chunks);
+
+    return fullBuffer;
+}
+
+export const getObjectStream = async(bucketName: string, objectName: string) => {
+    const dataStream = await minioClient.getObject(bucketName, objectName);
+    return dataStream;
+}

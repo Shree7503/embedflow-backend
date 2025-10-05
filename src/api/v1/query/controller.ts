@@ -20,6 +20,10 @@ export const handleUserQuery = async (
     return next(new AppError('Query string is required.'));
   }
 
+  
+
+  console.log(apiKeyId)
+
   if (!project || !apiKeyId) {
     
     return next(new AppError('Authentication context missing.'));

@@ -12,7 +12,7 @@ import {
   disconnectPipeline
 } from '@/services/minio-bullmq-pipeline.service';
 import prisma from '@/database/prisma';
-import { IngestionStatus, FileType } from 'prisma/generated/prisma';
+import { IngestionStatus } from 'prisma/generated/prisma';
 import { getObject, getObjectStream } from "@/utils/projects/documents/minio";
 
 interface MinioEventPayload {
@@ -82,14 +82,14 @@ async function ensureCollection(vectorSize: number): Promise<void> {
 async function processMinioEvent(job: Job<MinioEventPayload>): Promise<{ status: string; processedObject: string }> {
   const { bucketName, objectKey, contentType, userMetadata } = job.data;
   
-   const documentId = userMetadata?.['x-amz-meta-documentid'] || userMetadata?.documentid;
+  //  const documentId = userMetadata?.['x-amz-meta-documentid'] || userMetadata?.documentid;
     
-    if (!documentId) {
-        logger.error(`Job ${job.id} skipped: documentId missing in metadata.`);
-        return { status: 'skipped', processedObject: objectKey };
-    }
+  //   if (!documentId) {
+  //       logger.error(`Job ${job.id} skipped: documentId missing in metadata.`);
+  //       return { status: 'skipped', processedObject: objectKey };
+  //   }
     
-    await updateDocumentStatus(documentId, 'PROCESSING');
+  //   await updateDocumentStatus(documentId, 'PROCESSING');
     
 
   try {
@@ -110,7 +110,7 @@ async function processMinioEvent(job: Job<MinioEventPayload>): Promise<{ status:
     
     if (result.chunks.length === 0) {
       logger.warn('No chunks created, skipping Qdrant storage');
-      await updateDocumentStatus(documentId, 'COMPLETED');
+      // await updateDocumentStatus(documentId, 'COMPLETED');
       return { status: 'success', processedObject: objectKey };
     }
 
@@ -126,7 +126,7 @@ async function processMinioEvent(job: Job<MinioEventPayload>): Promise<{ status:
           vector: embedding,
           payload: {
             text: chunk.content,
-            documentId: documentId,
+            // documentId: documentId,
             chunkId: chunk.id,
             topic: chunk.metadata.topic,
             summary: chunk.metadata.summary,
@@ -151,7 +151,7 @@ async function processMinioEvent(job: Job<MinioEventPayload>): Promise<{ status:
     });
 
     logger.info(`Stored ${points.length} chunks in Qdrant for: ${objectKey}`);
-    await updateDocumentStatus(documentId, 'COMPLETED');
+    // await updateDocumentStatus(documentId, 'COMPLETED');
     return { status: 'success', processedObject: objectKey };
 
   } catch (error) {

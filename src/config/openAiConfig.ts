@@ -16,7 +16,7 @@ export const optimizedOpenAIEmbeddingConfig: OpenAIEmbeddingConfig = {
   batchSize: 2048,
 };
 
-const openaiEmbeddingClient = new OpenAI({
+export const openaiEmbeddingClient = new OpenAI({
   apiKey: optimizedOpenAIEmbeddingConfig.apiKey,
   baseURL: optimizedOpenAIEmbeddingConfig.baseURL,
 });

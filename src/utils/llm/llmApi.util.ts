@@ -12,6 +12,7 @@ export class LLMApiUtility {
             const response = await client.embeddings.create({
                 model: modelConfig.modelName, 
                 input: text,
+                dimensions:512
             });
 
             if (!response.data || response.data.length === 0) {

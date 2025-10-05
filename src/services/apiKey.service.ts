@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import { Project } from 'prisma/generated/prisma'; 
 
 export interface AuthProjectContext {
-  projectId: string;
+  apiKeyId: string;
   project: Project;
 }
 
@@ -15,13 +15,16 @@ export class ApiKeyService {
       throw new AppError('Invalid API Key format.');
     }
 
+    
+
     const [keyPrefix, keySecret] = fullApiKey.split('_');
     
     const keyHash = crypto.createHash('sha256').update(keySecret).digest('hex');
 
+    
     const apiKeyRecord = await prisma.apiKey.findFirst({
       where: {
-        keyPrefix: keyPrefix,
+        keyPrefix: `${keyPrefix}_`,
         keyHash: keyHash,
         isActive: true,
       },
@@ -29,6 +32,8 @@ export class ApiKeyService {
         project: true
       }
     });
+
+    
 
     if (!apiKeyRecord) {
       throw new AppError('API Key not found or inactive.');
@@ -42,7 +47,7 @@ export class ApiKeyService {
     });
 
     return {
-      projectId: apiKeyRecord.projectId,
+      apiKeyId: apiKeyRecord.id,
       project: apiKeyRecord.project,
     };
   }

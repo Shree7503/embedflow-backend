@@ -7,6 +7,6 @@ import { RequestHandler } from "express";
 
 router.use("/:projectId/doc",verifyUserToken,Documents);
 router.use('/:projectId/keys',verifyUserToken,key);
-router.use('/:projectId/models',verifyUserToken,assignProjectModels as RequestHandler);
+router.patch('/:projectId/models',verifyUserToken,assignProjectModels as RequestHandler);
 
 export default router;

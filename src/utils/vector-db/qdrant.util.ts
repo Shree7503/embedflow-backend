@@ -9,7 +9,7 @@ export interface RetrievedChunk {
 
 export class QdrantUtility {
     
-    private readonly K_VALUE = 5;
+    private readonly K_VALUE = 50;
 
     public async searchVectors(
         collectionName: string, 

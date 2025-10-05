@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { apiKeyService } from '../services/apiKey.service'; // Path to the service file
-import { AppError } from '../utils/debug/AppError'; // Path to AppError
-import { errorHandler } from '../handlers/error.handler'; // Assuming you have a central error handler
+import { apiKeyService } from '../services/apiKey.service'; 
+import { AppError } from '../utils/debug/AppError'; 
+import { errorHandler } from '../handlers/error.handler'; 
+
 
 
 export const apiKeyAuthMiddleware = async (
@@ -9,7 +10,7 @@ export const apiKeyAuthMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers['proxy-authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return errorHandler(new AppError('Authorization header missing or malformed. Expected format: Bearer <API_KEY>'), req, res, next);
@@ -20,8 +21,8 @@ export const apiKeyAuthMiddleware = async (
   try {
     const authContext = await apiKeyService.validateAndGetProject(fullApiKey);
 
-    req.project = authContext.project; 
-
+    req.project = authContext.project
+    req.apiKeyId = authContext.apiKeyId
    
     next();
   } catch (error) {

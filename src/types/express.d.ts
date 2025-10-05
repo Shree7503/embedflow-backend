@@ -11,6 +11,8 @@ declare global {
       user?: User; 
       
       project?: Project; 
+
+      apiKeyId?: string
     }
   }
 }

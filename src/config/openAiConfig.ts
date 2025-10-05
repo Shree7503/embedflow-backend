@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 
-
 export interface OpenAIEmbeddingConfig {
   model: 'text-embedding-3-large' | 'text-embedding-3-small' | 'text-embedding-ada-002';
   dimensions?: number;
@@ -17,9 +16,11 @@ export const optimizedOpenAIEmbeddingConfig: OpenAIEmbeddingConfig = {
   batchSize: 2048,
 };
 
-export const openaiEmbeddingClient = new OpenAI({
+const openaiEmbeddingClient = new OpenAI({
   apiKey: optimizedOpenAIEmbeddingConfig.apiKey,
   baseURL: optimizedOpenAIEmbeddingConfig.baseURL,
 });
 
-
+export function getOpenAiClient(): OpenAI {
+    return openaiEmbeddingClient;
+}

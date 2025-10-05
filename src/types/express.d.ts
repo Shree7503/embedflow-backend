@@ -1,4 +1,4 @@
-export {};
+import { Project } from 'prisma/generated/prisma';
 
 declare global {
   namespace Express {
@@ -8,13 +8,11 @@ declare global {
       email: string;
     }
     interface Request {
-      user?: User;
+      user?: User; 
+      
+      project?: Project; 
     }
-    interface Request {
-      user?: {
-        id: string;
-      };
-    }
-    
   }
 }
+
+export {};

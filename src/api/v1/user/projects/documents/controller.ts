@@ -62,14 +62,14 @@ try {
        projectId: projectId,
        fileName: docName,
        fileType: getFileTypeEnum(mimetype),
-       storagePath: `${bucketName}/${projectId}`, 
+       storagePath: `${bucketName}/${userId}/${projectId}`, 
        uplaodStatus: 'PENDING',
        ingestionStatus: 'PENDING', 
        
      },
    });
    
-   const objectName = `${projectId}/${newDocument.id}-${docName}`
+   const objectName = `${userId}/${projectId}/${newDocument.id}-${docName}`
    const presignedUrl =await generatePreSignedUrl(objectName,bucketName,expTime);
    
    
@@ -221,7 +221,7 @@ export const changeDocument = async (
       }
       const bucketName = document.storagePath.split("/")[0]
       logger.debug(`DEBUG: Attempting to rename from path: [${document.storagePath}], filename: [${document.fileName}]`);
-      await renameObject(bucketName, `${projectId}/${document.id}-${document.fileName}`, `${projectId}/${document.id}-${docName}`);
+      await renameObject(bucketName, `${userId}/${projectId}/${document.id}-${document.fileName}`, `${userId}/${projectId}/${document.id}-${docName}`);
       
       return tx.document.update({
         where: { id: documentId },
@@ -266,7 +266,7 @@ export const delDocument = async (
       return res.status(404).json({ message: 'Document not found or you do not have permission to delete it.' });
     }
 
-    const objectName = `${projectId}/${document.id}-${document.fileName}`;
+    const objectName = `${userId}/${projectId}/${document.id}-${document.fileName}`;
     const bucketName = document.storagePath.split("/")[0];
 
     await deleteObject(bucketName, objectName);

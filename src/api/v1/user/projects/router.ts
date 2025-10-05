@@ -3,9 +3,10 @@ import {
   createProject,
   getProjects,
   updateProject,
-  deleteProject,
+  deleteProject
 } from "@/api/v1/user/projects/controller";
 const router = express.Router();
+
 
 router.post("/", createProject);
 router.get("/", getProjects);

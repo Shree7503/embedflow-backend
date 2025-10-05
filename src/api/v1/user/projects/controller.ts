@@ -1,6 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "@/database/prisma";
+import { modelService } from "@/services/model.service";
+import { AppError } from "@/utils/debug/AppError";
 
+interface ProjectRequest extends Request {
+    user: { id: string; username: string; email: string };
+    params: { projectId: string };
+    body: any; 
+}
+
+interface AssignModelRequestBody {
+    retrievalModelId?: string;
+    generatorModelId?: string;
+}
 
 type ProjectUpdate = {
   name?: string;
@@ -116,3 +128,30 @@ export const deleteProject = async (
   }
 };
 
+export const assignProjectModels = async (req: ProjectRequest, res: Response, next: NextFunction) => {
+    const userId = req.user.id;
+    const { projectId } = req.params;
+    const { retrievalModelId, generatorModelId } = req.body as AssignModelRequestBody;
+
+    if (!retrievalModelId && !generatorModelId) {
+        return next(new AppError('At least one model ID (retrievalModelId or generatorModelId) is required for update.'));
+    }
+
+    try {
+        const updatedProject = await modelService.updateProjectModels({
+            projectId,
+            userId,
+            retrievalModelId,
+            generatorModelId
+        });
+
+        res.status(200).json({
+            message: 'Project models updated successfully.',
+            projectId: updatedProject.id,
+            retrievalModelId: updatedProject.retrievalModelId,
+            generatorModelId: updatedProject.generatorModelId,
+        });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -11,7 +11,9 @@ let redisClient: RedisClientType;
 let bullmqQueue: Queue;
 let isRunning = false;
 
-export async function initializePipeline(config: PipelineConfig): Promise<void> {
+export async function initializePipeline(
+  config: PipelineConfig
+): Promise<void> {
   const {
     queueName = "file-processing",
     redisConfig = { host: "localhost", port: 6379 },
@@ -141,7 +143,9 @@ async function transferEventToQueue(
       removeOnFail: 50,
     });
 
-    console.log(`Event transferred to queue: ${jobData.objectKey || "unknown"}`);
+    console.log(
+      `Event transferred to queue: ${jobData.objectKey || "unknown"}`
+    );
   } catch (error) {
     console.error("Error transferring event to queue:", error);
     throw error;

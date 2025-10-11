@@ -4,14 +4,14 @@ import { modelService } from "@/services/model.service";
 import { AppError } from "@/utils/debug/AppError";
 
 interface ProjectRequest extends Request {
-    user: { id: string; username: string; email: string };
-    params: { projectId: string };
-    body: any; 
+  user: { id: string; username: string; email: string };
+  params: { projectId: string };
+  body: any;
 }
 
 interface AssignModelRequestBody {
-    retrievalModelId?: string;
-    generatorModelId?: string;
+  retrievalModelId?: string;
+  generatorModelId?: string;
 }
 
 type ProjectUpdate = {
@@ -79,6 +79,36 @@ export const getProjects = async (
   }
 };
 
+export const getProjectById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { projectId } = req.params;
+
+  try {
+    const project = await prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        status: "error",
+        message: "Project not found",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: project,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const updateProject = async (
   req: Request<{ id: string }, object, ProjectUpdate>,
   res: Response,
@@ -128,30 +158,39 @@ export const deleteProject = async (
   }
 };
 
-export const assignProjectModels = async (req: ProjectRequest, res: Response, next: NextFunction) => {
-    const userId = req.user.id;
-    const { projectId } = req.params;
-    const { retrievalModelId, generatorModelId } = req.body as AssignModelRequestBody;
+export const assignProjectModels = async (
+  req: ProjectRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.user.id;
+  const { projectId } = req.params;
+  const { retrievalModelId, generatorModelId } =
+    req.body as AssignModelRequestBody;
 
-    if (!retrievalModelId && !generatorModelId) {
-        return next(new AppError('At least one model ID (retrievalModelId or generatorModelId) is required for update.'));
-    }
+  if (!retrievalModelId && !generatorModelId) {
+    return next(
+      new AppError(
+        "At least one model ID (retrievalModelId or generatorModelId) is required for update."
+      )
+    );
+  }
 
-    try {
-        const updatedProject = await modelService.updateProjectModels({
-            projectId,
-            userId,
-            retrievalModelId,
-            generatorModelId
-        });
+  try {
+    const updatedProject = await modelService.updateProjectModels({
+      projectId,
+      userId,
+      retrievalModelId,
+      generatorModelId,
+    });
 
-        res.status(200).json({
-            message: 'Project models updated successfully.',
-            projectId: updatedProject.id,
-            retrievalModelId: updatedProject.retrievalModelId,
-            generatorModelId: updatedProject.generatorModelId,
-        });
-    } catch (error) {
-        next(error);
-    }
+    res.status(200).json({
+      message: "Project models updated successfully.",
+      projectId: updatedProject.id,
+      retrievalModelId: updatedProject.retrievalModelId,
+      generatorModelId: updatedProject.generatorModelId,
+    });
+  } catch (error) {
+    next(error);
+  }
 };

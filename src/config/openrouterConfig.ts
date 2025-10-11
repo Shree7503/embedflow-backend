@@ -1,7 +1,7 @@
-import OpenAI from 'openai';
-import * as dotenv from 'dotenv';
+import OpenAI from "openai";
+import * as dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
 interface OpenRouterConfig {
   apiKey: string;
@@ -22,7 +22,6 @@ interface OpenRouterConfig {
 export function initializeClient(config: OpenRouterConfig): OpenAI {
   return new OpenAI({
     apiKey: config.apiKey,
-    baseURL: config.baseUrl || 'https://openrouter.ai/api/v1'
+    baseURL: config.baseUrl || "https://openrouter.ai/api/v1",
   });
 }
-

@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { listQueryLogs } from './controller';
-import { verifyUserToken } from '@/middlewares/user.auth.middleware';
+import { Router } from "express";
+import { listQueryLogs } from "./controller";
+import { verifyUserToken } from "@/middlewares/user.auth.middleware";
 
 const router = Router();
 
@@ -8,6 +8,6 @@ const router = Router();
 router.use(verifyUserToken);
 
 // GET /v1/user/logs?projectId=...&limit=...
-router.get('/', listQueryLogs);
+router.get("/", listQueryLogs);
 
 export default router;

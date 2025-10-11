@@ -1,7 +1,7 @@
-import prisma  from '../database/prisma';
-import { AppError } from '../utils/debug/AppError';
-import * as crypto from 'crypto';
-import { Project } from 'prisma/generated/prisma'; 
+import prisma from "../database/prisma";
+import { AppError } from "../utils/debug/AppError";
+import * as crypto from "crypto";
+import { Project } from "prisma/generated/prisma";
 
 export interface AuthProjectContext {
   apiKeyId: string;
@@ -9,19 +9,17 @@ export interface AuthProjectContext {
 }
 
 export class ApiKeyService {
-  public async validateAndGetProject(fullApiKey: string): Promise<AuthProjectContext> {
-    
-    if (!fullApiKey || fullApiKey.indexOf('_') === -1) {
-      throw new AppError('Invalid API Key format.');
+  public async validateAndGetProject(
+    fullApiKey: string
+  ): Promise<AuthProjectContext> {
+    if (!fullApiKey || fullApiKey.indexOf("_") === -1) {
+      throw new AppError("Invalid API Key format.");
     }
 
-    
+    const [keyPrefix, keySecret] = fullApiKey.split("_");
 
-    const [keyPrefix, keySecret] = fullApiKey.split('_');
-    
-    const keyHash = crypto.createHash('sha256').update(keySecret).digest('hex');
+    const keyHash = crypto.createHash("sha256").update(keySecret).digest("hex");
 
-    
     const apiKeyRecord = await prisma.apiKey.findFirst({
       where: {
         keyPrefix: `${keyPrefix}_`,
@@ -29,22 +27,22 @@ export class ApiKeyService {
         isActive: true,
       },
       include: {
-        project: true
-      }
+        project: true,
+      },
     });
-
-    
 
     if (!apiKeyRecord) {
-      throw new AppError('API Key not found or inactive.');
+      throw new AppError("API Key not found or inactive.");
     }
-    
-    prisma.apiKey.update({
-      where: { id: apiKeyRecord.id },
-      data: { lastUsedAt: new Date() }
-    }).catch(error => {
-      console.error('Failed to update ApiKey lastUsedAt:', error);
-    });
+
+    prisma.apiKey
+      .update({
+        where: { id: apiKeyRecord.id },
+        data: { lastUsedAt: new Date() },
+      })
+      .catch((error) => {
+        console.error("Failed to update ApiKey lastUsedAt:", error);
+      });
 
     return {
       apiKeyId: apiKeyRecord.id,

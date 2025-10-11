@@ -1,7 +1,7 @@
 model ApiKey {
   id         String    @id @default(uuid())
   userId     String    @map("user_id")
-  projectId  String    @map("project_id")    
+  projectId  String    @map("project_id")
   keyHash    String    @map("key_hash")
   keyPrefix  String    @map("key_prefix")
   isActive   Boolean   @default(true) @map("is_active")
@@ -59,7 +59,8 @@ model Model {
   modelType   ModelType @map("model_type")
   description String?
   isActive    Boolean   @default(true) @map("is_active")
-  user        User      @relation(fields:[userId],references:[id])        
+  user        User      @relation(fields: [userId], references: [id])
+
   @@map("MODELS")
 }
 
@@ -105,7 +106,7 @@ model QueryLog {
 
 model User {
   id        String   @id @default(uuid())
-  username  String   @unique 
+  username  String   @unique
   email     String   @unique
   password  String
   createdAt DateTime @default(now()) @map("created_at")

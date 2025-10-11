@@ -3,7 +3,9 @@ import { queryService } from '../../../services/query.service';
 import { AppError } from '../../../utils/debug/AppError';
 
 interface QueryRequestBody {
-  query: string;
+  query: string,
+  systemPrompt: string | undefined,
+
 }
 
 export const handleUserQuery = async (
@@ -11,7 +13,9 @@ export const handleUserQuery = async (
   res: Response, 
   next: NextFunction,
 ) => {
-  const { query } = req.body;
+  const { query,
+          systemPrompt
+   } = req.body;
   const project = req.project;
 
   const apiKeyId = (req as any).apiKeyId as string; 
@@ -35,10 +39,10 @@ export const handleUserQuery = async (
    
     const config = await queryService.getRagConfiguration(project);
 
+    const combinedQuery = queryService.combinePromptAndQuery(query,systemPrompt)
     
-    const contextChunks = await queryService.retrieveContext(query, config);
+    const contextChunks = await queryService.retrieveContext(combinedQuery, config);
 
-    
     const { generatedResponse, citations } = await queryService.generateResponse(
         query, 
         contextChunks, 

@@ -5,7 +5,6 @@ import { AppError } from '../../../utils/debug/AppError';
 interface QueryRequestBody {
   query: string,
   systemPrompt: string | undefined,
-
 }
 
 export const handleUserQuery = async (
@@ -35,8 +34,7 @@ export const handleUserQuery = async (
 
   try {
     const requestTimestamp = new Date();
-
-   
+    
     const config = await queryService.getRagConfiguration(project);
 
     const combinedQuery = queryService.combinePromptAndQuery(query,systemPrompt)

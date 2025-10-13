@@ -8,7 +8,7 @@ export const apiKeyAuthMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers["proxy-authorization"];
+  const authHeader = req.headers["authorization"];
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return errorHandler(

@@ -8,7 +8,6 @@ if (!fs.existsSync(logsDirectory)) {
   fs.mkdirSync(logsDirectory, { recursive: true });
 }
 
-// Define custom log levels and colors
 const customLevels = {
   levels: {
     error: 0,

@@ -101,7 +101,7 @@ export class QueryService {
     contextChunks: RetrievedChunk[]
   ): string {
     const systemInstruction = `You are an expert Question Answering system. Your task is to answer the user's question ONLY based on the provided context chunks. 
-If the information required to answer is not present in the context, you MUST state "I cannot answer this question based on the provided documents." 
+whenever the user want to summarize his provided documents extract all related related chunks to that particular document.If the information required to answer is not present in the context, you MUST state "I cannot answer this question based on the provided documents." 
 For every piece of information you use, include the document ID (cited as [documentId]) at the end of the sentence or fact.`;
 
     const context = contextChunks

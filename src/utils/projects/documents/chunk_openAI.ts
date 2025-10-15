@@ -24,14 +24,22 @@ export interface ChunkResult {
 
 // Agentic Chunking: Uses LLM to identify semantic propositions and group them
 async function extractPropositions(client: OpenAI, text: string, model: string): Promise<string[]> {
-    const prompt = `Extract atomic propositions from this text. Each proposition should be a single, self-contained fact or idea.
+    const prompt = `Extract **atomic propositions** from the text provided below. An atomic proposition must be a single, self-contained fact or idea that can be evaluated as true or false on its own.
 
-Text:
+**Strict Context and Content Constraints:**
+1.  **Preserve all essential names, dates, numbers, and core facts.** No important data point should be omitted.
+2.  **Ensure Self-Contained Sentences:** If the original text uses a pronoun (e.g., "he," "it," "they"), replace it with the specific subject or entity it refers to in the proposition.
+3.  Each proposition must be a complete, declarative sentence.
+4.  Do not combine multiple distinct facts into one proposition (maintain atomicity).
+5.  Do not include introductory or attribution phrases (e.g., "The article suggests that...").
+
+**Text:**
 """
 ${text}
 """
 
-Return a JSON array of proposition strings: ["proposition1", "proposition2", ...]`;
+Return a **JSON array** of proposition strings:
+["proposition 1 (including all necessary context)", "proposition 2 (including all necessary context)", "proposition 3 (including all necessary context)", ...]`;
 
     try {
         const response = await client.chat.completions.create({
@@ -57,20 +65,29 @@ async function groupPropositions(
     propositions: string[], 
     model: string
 ): Promise<Array<{ topic: string; summary: string; propositions: string[] }>> {
-    const prompt = `Group these propositions into semantically coherent chunks. Each chunk should:
-- Contain related propositions about the same topic
-- Have 3-8 propositions (ideal for embeddings)
-- Be self-contained and meaningful
+    const prompt = `Group the following list of **atomic propositions** into semantically coherent and logically connected chunks. Each chunk should focus on a single, distinct theme or subtopic.
 
-Propositions:
+**Strict Constraints:**
+1.  **Do not omit or skip any proposition** from the provided list. Every proposition must belong to exactly one group.
+2.  The grouping must be based strictly on **semantic coherence** (i.e., propositions that discuss the same entity, event, or concept must be grouped together).
+3.  Each group must be assigned a concise, descriptive **topic title** and a single-sentence **summary** that encapsulates the theme of the group's propositions.
+
+**Propositions:**
 ${propositions.map((p, i) => `${i + 1}. ${p}`).join('\n')}
 
-Return JSON array:
-[{
-  "topic": "Brief topic title",
-  "summary": "One sentence summary",
-  "propositions": ["prop1", "prop2", ...]
-}]`;
+Return a **JSON array** of groups, formatted as follows:
+[
+  {
+    "topic": "Concise Topic Title for Group 1",
+    "summary": "One sentence that summarizes the theme of this group's propositions.",
+    "propositions": ["The first proposition text.", "The second proposition text.", "..."]
+  },
+  {
+    "topic": "Concise Topic Title for Group 2",
+    "summary": "One sentence that summarizes the theme of this group's propositions.",
+    "propositions": ["Another proposition text.", "..."]
+  }
+]`;
 
     try {
         const response = await client.chat.completions.create({
@@ -112,7 +129,7 @@ function slidingWindowChunk(text: string, windowSize: number = 2000): Chunk[] {
 
         const content = text.slice(start, end).trim();
         
-        if (content.length > 50) {
+        if (content.length > 50){
             chunks.push({
                 id: `chunk_${chunkIndex++}`,
                 content,

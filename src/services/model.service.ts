@@ -1,5 +1,5 @@
 import prisma from "../database/prisma";
-import { AppError } from "../utils/debug/AppError";
+import { AppError } from "@/utils/debug/AppError";
 import { Model, ModelType, Project } from "prisma/generated/prisma";
 
 export interface CreateModelParams {
@@ -25,9 +25,7 @@ export class ModelService {
     });
 
     if (existingModel) {
-      throw new AppError(
-        `Model name "${data.modelName}" already exists for this user.`
-      );
+      return existingModel;
     }
 
     return prisma.model.create({

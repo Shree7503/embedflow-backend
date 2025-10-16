@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { apiKeyService } from "../services/apiKey.service";
-import { AppError } from "../utils/debug/AppError";
-import { errorHandler } from "../handlers/error.handler";
+import { apiKeyService } from "@/services/apiKey.service";
+import { AppError } from "@/utils/debug/AppError";
+import { errorHandler } from "@/handlers/error.handler";
 
 export const apiKeyAuthMiddleware = async (
   req: Request,

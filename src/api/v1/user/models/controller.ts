@@ -51,6 +51,7 @@ export const createModel = async (
       modelType,
       description,
     });
+
     res.status(201).json({
       message: "Model created successfully.",
       model: model,

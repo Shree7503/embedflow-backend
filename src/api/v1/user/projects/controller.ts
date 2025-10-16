@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import prisma from "@/database/prisma";
 import { modelService } from "@/services/model.service";
 import { AppError } from "@/utils/debug/AppError";
+import logger from "@/utils/debug/logger";
 
 interface ProjectRequest extends Request {
   user: { id: string; username: string; email: string };
@@ -43,6 +44,7 @@ export const createProject = async (
         description: description,
         retrievalModelId: retrievalModelId,
         generatorModelId: generatorModelId,
+        systemPrompt: "",
         vectorDbCollectionName: vectorDbCollectionName,
       },
     });
@@ -86,6 +88,13 @@ export const getProjectById = async (
 ) => {
   const { projectId } = req.params;
 
+  if (!projectId) {
+    return res.status(404).json({
+      status: "error",
+      message: "project Id not provided",
+    });
+  }
+
   try {
     const project = await prisma.project.findUnique({
       where: {
@@ -110,17 +119,24 @@ export const getProjectById = async (
 };
 
 export const updateProject = async (
-  req: Request<{ id: string }, object, ProjectUpdate>,
+  req: Request<{ projectId: string }, object, ProjectUpdate>,
   res: Response,
   next: NextFunction
 ) => {
-  const id = req.params.id;
+  const { projectId } = req.params;
   const updates = req.body;
+
+  if (!projectId) {
+    return res.status(404).json({
+      status: "error",
+      message: "project Id not provided",
+    });
+  }
 
   try {
     const project = await prisma.project.update({
       where: {
-        id: id,
+        id: projectId,
       },
       data: updates,
     });

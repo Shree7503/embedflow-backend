@@ -69,9 +69,12 @@ export class QueryService {
     };
   }
 
-  public combinePromptAndQuery(query: string, systemPrompt: string | undefined): string {
-  return `${systemPrompt}\n${query}`;
-}
+  public combinePromptAndQuery(
+    query: string,
+    systemPrompt: string | undefined
+  ): string {
+    return `${systemPrompt}\n${query}`;
+  }
 
   public async retrieveContext(
     userQuery: string,

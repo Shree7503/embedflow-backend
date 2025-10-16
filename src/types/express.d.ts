@@ -1,4 +1,4 @@
-import { Project } from 'prisma/generated/prisma';
+import { Project } from "prisma/generated/prisma";
 
 declare global {
   namespace Express {
@@ -8,11 +8,11 @@ declare global {
       email: string;
     }
     interface Request {
-      user?: User; 
-      
-      project?: Project; 
+      user?: User;
 
-      apiKeyId?: string
+      project?: Project;
+
+      apiKeyId?: string;
     }
   }
 }

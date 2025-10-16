@@ -76,6 +76,7 @@ model Project {
   description            String?
   retrievalModelId       String   @map("retrieval_model_id")
   generatorModelId       String   @map("generator_model_id")
+  systemPrompt           String   @default("You are a helpful AI Assistant") @map("system_prompt")
   vectorDbCollectionName String?  @map("vector_db_collection_name")
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")

@@ -1,5 +1,5 @@
 import prisma from "../database/prisma";
-import { AppError } from "../utils/debug/AppError";
+import { AppError } from "@/utils/debug/AppError";
 import * as crypto from "crypto";
 import { Project } from "prisma/generated/prisma";
 

@@ -12,6 +12,6 @@ router.use("/auth", authentication);
 router.use("/profile", verifyUserToken, getProfileById);
 router.use("/projects", verifyUserToken, projects);
 router.use("/models", verifyUserToken, models);
-router.use("logs", verifyUserToken, logs);
+router.use("/logs", verifyUserToken, logs);
 
 export default router;
